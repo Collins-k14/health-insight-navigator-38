@@ -9,6 +9,7 @@ import SymptomChecker from "@/components/SymptomChecker";
 import HealthFinder from "@/components/HealthFinder";
 import PremiumPlans from "@/components/PremiumPlans";
 import MedicalDisclaimer from "@/components/MedicalDisclaimer";
+import { AuthButton } from "@/components/AuthButton";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<'symptoms' | 'finder' | 'premium'>('symptoms');
@@ -45,6 +46,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Navigation Bar */}
+      <nav className="absolute top-0 left-0 right-0 z-50 p-6">
+        <div className="max-w-7xl mx-auto flex justify-end">
+          <AuthButton />
+        </div>
+      </nav>
+      
       {/* Hero Section */}
       <HeroSection />
 
