@@ -105,7 +105,7 @@ export const usePaystack = () => {
       key: PAYSTACK_PUBLIC_KEY,
       email: user?.email || '',
       amount: amount * 100, // Paystack expects amount in kobo/cents
-      currency: 'USD',
+      currency: 'KES',
       ref: reference,
       metadata: {
         planName,
