@@ -37,39 +37,71 @@ export const usePaystack = () => {
 
     console.log('✅ User authenticated:', user.email);
 
-    // Load Paystack script dynamically if not already loaded
-    if (!window.PaystackPop) {
-      console.log('📦 Loading Paystack script...');
+    // Check if Paystack script is already loaded
+    if (typeof window !== 'undefined' && window.PaystackPop) {
+      console.log('✅ Paystack already loaded');
+      processPayment(planName, amount);
+      return;
+    }
+
+    // Load Paystack script
+    console.log('📦 Loading Paystack script...');
+    
+    return new Promise<void>((resolve, reject) => {
       const script = document.createElement('script');
       script.src = 'https://js.paystack.co/v1/inline.js';
       script.async = true;
       
       script.onload = () => {
         console.log('✅ Paystack script loaded successfully');
-        processPayment(planName, amount);
+        // Wait a bit for the script to initialize
+        setTimeout(() => {
+          if (window.PaystackPop) {
+            processPayment(planName, amount);
+            resolve();
+          } else {
+            console.error('❌ PaystackPop not available after script load');
+            toast({
+              title: "Payment Error",
+              description: "Payment system failed to initialize. Please refresh and try again.",
+              variant: "destructive",
+            });
+            reject(new Error('PaystackPop not available'));
+          }
+        }, 100);
       };
       
       script.onerror = (error) => {
         console.error('❌ Failed to load Paystack script:', error);
         toast({
           title: "Payment Error",
-          description: "Failed to load payment system. Please try again.",
+          description: "Failed to load payment system. Please check your internet connection and try again.",
           variant: "destructive",
         });
+        reject(error);
       };
       
       document.head.appendChild(script);
-    } else {
-      console.log('✅ Paystack already loaded');
-      processPayment(planName, amount);
-    }
+    });
   };
 
   const processPayment = (planName: string, amount: number) => {
     console.log('💳 Processing payment with Paystack...');
+    
+    // Validate that PaystackPop is available
+    if (!window.PaystackPop || typeof window.PaystackPop.setup !== 'function') {
+      console.error('❌ PaystackPop is not properly loaded');
+      toast({
+        title: "Payment Setup Error",
+        description: "Payment system is not ready. Please refresh the page and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const reference = `PSK_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
     
-    const config: PaystackConfig = {
+    const config = {
       key: PAYSTACK_PUBLIC_KEY,
       email: user?.email || '',
       amount: amount * 100, // Paystack expects amount in kobo/cents
@@ -79,7 +111,7 @@ export const usePaystack = () => {
         planName,
         userId: user?.id || '',
       },
-      callback: async (response) => {
+      callback: async (response: any) => {
         console.log('✅ Payment callback received:', response);
         await handlePaymentSuccess(response, planName, amount);
       },
@@ -96,22 +128,24 @@ export const usePaystack = () => {
       email: config.email, 
       amount: config.amount, 
       currency: config.currency, 
-      ref: config.ref 
+      ref: config.ref,
+      key: config.key.substring(0, 10) + '...' // Only show first 10 chars of key for security
     });
 
     try {
-      if (!window.PaystackPop) {
-        throw new Error('PaystackPop is not available');
+      const handler = window.PaystackPop.setup(config);
+      
+      if (!handler || typeof handler.openIframe !== 'function') {
+        throw new Error('Invalid Paystack handler returned');
       }
       
-      const handler = window.PaystackPop.setup(config);
       console.log('🚀 Opening Paystack iframe...');
       handler.openIframe();
     } catch (error) {
       console.error('❌ Error setting up Paystack:', error);
       toast({
         title: "Payment Setup Error",
-        description: "Failed to initialize payment. Please try again.",
+        description: "Failed to initialize payment. Please try refreshing the page.",
         variant: "destructive",
       });
     }
