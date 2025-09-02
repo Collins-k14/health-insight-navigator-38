@@ -111,9 +111,10 @@ export const usePaystack = () => {
         planName,
         userId: user?.id || '',
       },
-      callback: async (response: any) => {
+      callback: (response: any) => {
         console.log('✅ Payment callback received:', response);
-        await handlePaymentSuccess(response, planName, amount);
+        // Handle payment success without async/await in callback
+        handlePaymentSuccess(response, planName, amount);
       },
       onClose: () => {
         console.log('❌ Payment window closed');
@@ -151,45 +152,48 @@ export const usePaystack = () => {
     }
   };
 
-  const handlePaymentSuccess = async (response: any, planName: string, amount: number) => {
+  const handlePaymentSuccess = (response: any, planName: string, amount: number) => {
     console.log('🎉 Processing successful payment:', response);
     
-    try {
-      // Store payment record in database
-      const { error } = await supabase
-        .from('payments')
-        .insert({
-          user_id: user?.id,
-          amount: amount,
-          currency: 'USD',
-          status: 'success',
-          payment_ref: response.reference,
+    // Use setTimeout to handle async operations outside the callback
+    setTimeout(async () => {
+      try {
+        // Store payment record in database
+        const { error } = await supabase
+          .from('payments')
+          .insert({
+            user_id: user?.id,
+            amount: amount,
+            currency: 'USD',
+            status: 'success',
+            payment_ref: response.reference,
+          });
+
+        if (error) {
+          console.error('❌ Error storing payment:', error);
+          toast({
+            title: "Payment Processing Error",
+            description: "Payment was successful but there was an issue storing the record. Please contact support.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        console.log('✅ Payment record stored successfully');
+        toast({
+          title: "Payment Successful!",
+          description: `You've successfully subscribed to the ${planName} plan. Welcome to premium!`,
         });
 
-      if (error) {
-        console.error('❌ Error storing payment:', error);
+      } catch (error) {
+        console.error('❌ Payment processing error:', error);
         toast({
           title: "Payment Processing Error",
-          description: "Payment was successful but there was an issue storing the record. Please contact support.",
+          description: "There was an issue processing your payment. Please contact support.",
           variant: "destructive",
         });
-        return;
       }
-
-      console.log('✅ Payment record stored successfully');
-      toast({
-        title: "Payment Successful!",
-        description: `You've successfully subscribed to the ${planName} plan. Welcome to premium!`,
-      });
-
-    } catch (error) {
-      console.error('❌ Payment processing error:', error);
-      toast({
-        title: "Payment Processing Error",
-        description: "There was an issue processing your payment. Please contact support.",
-        variant: "destructive",
-      });
-    }
+    }, 0);
   };
 
   return { initiatePayment };
