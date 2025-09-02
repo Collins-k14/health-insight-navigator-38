@@ -2,8 +2,13 @@ import { Check, Star, Crown, Zap, Users, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { usePaystack } from "@/hooks/usePaystack";
+import { useAuth } from "@/hooks/useAuth";
 
 const PremiumPlans = () => {
+  const { initiatePayment } = usePaystack();
+  const { user } = useAuth();
+  
   const plans = [
     {
       name: "Basic",
@@ -28,6 +33,7 @@ const PremiumPlans = () => {
     {
       name: "Premium",
       price: "$9.99",
+      priceAmount: 9.99,
       period: "/month",
       description: "Advanced AI health insights and premium access",
       features: [
@@ -48,6 +54,7 @@ const PremiumPlans = () => {
     {
       name: "Healthcare Provider",
       price: "$49.99",
+      priceAmount: 49.99,
       period: "/month",
       description: "Complete solution for clinics and hospitals",
       features: [
@@ -69,9 +76,21 @@ const PremiumPlans = () => {
     }
   ];
 
-  const handleSubscribe = (planName: string) => {
-    // This will integrate with Paystack later
-    console.log(`Subscribing to ${planName} plan`);
+  const handleSubscribe = (planName: string, priceAmount?: number) => {
+    if (planName === "Basic") {
+      // Free plan - no payment needed
+      return;
+    }
+    
+    if (planName === "Healthcare Provider") {
+      // Contact sales for custom pricing
+      window.open('mailto:sales@healthai.com?subject=Healthcare Provider Plan Inquiry', '_blank');
+      return;
+    }
+    
+    if (planName === "Premium" && priceAmount) {
+      initiatePayment(planName, priceAmount);
+    }
   };
 
   return (
@@ -160,10 +179,12 @@ const PremiumPlans = () => {
                     : 'py-6'
                 }`}
                 variant={plan.popular ? 'default' : 'outline'}
-                onClick={() => handleSubscribe(plan.name)}
+                onClick={() => handleSubscribe(plan.name, plan.priceAmount)}
+                disabled={plan.name === "Premium" && !user}
               >
                 {plan.popular && <Zap className="mr-2 h-5 w-5" />}
                 {plan.buttonText}
+                {plan.name === "Premium" && !user && " (Sign In Required)"}
               </Button>
 
               {/* Special notes */}
