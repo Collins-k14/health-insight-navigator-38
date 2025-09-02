@@ -164,7 +164,7 @@ export const usePaystack = () => {
           .insert({
             user_id: user?.id,
             amount: amount,
-            currency: 'USD',
+            currency: 'KES',
             status: 'success',
             payment_ref: response.reference,
           });
