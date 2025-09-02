@@ -32,8 +32,8 @@ const PremiumPlans = () => {
     },
     {
       name: "Premium",
-      price: "$9.99",
-      priceAmount: 9.99,
+      price: "KES 1300",
+      priceAmount: 1300,
       period: "/month",
       description: "Advanced AI health insights and premium access",
       features: [
