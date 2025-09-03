@@ -20,10 +20,10 @@ Frontend: HTML, CSS, JavaScript (responsive web app).
 
 Backend & Auth: Supabase (PostgreSQL, API, authentication).
 
-AI: Symptom checker API (Infermedica / RapidAPI alternative).
+AI: Symptom checker API (RapidAPI ).
 
 Payments: Paystack integration for premium consultations.
 
 Maps: Google Maps API for clinic & pharmacy locations.
 
-Hosting: Supabase & Vercel (for fast deployment).
+Hosting: Supabase & lovable.
