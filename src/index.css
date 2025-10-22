@@ -136,7 +136,8 @@ All colors MUST be HSL.
   }
   
   .hero-section {
-    @apply bg-[var(--gradient-hero)] text-primary-foreground;
+    background: linear-gradient(135deg, hsl(195 85% 35%) 0%, hsl(145 70% 40%) 100%);
+    @apply text-white;
   }
   
   .medical-input {
